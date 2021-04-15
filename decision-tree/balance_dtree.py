@@ -1,9 +1,7 @@
-import pandas as pd
-import numpy as np
-
 # Get balance scale dataset from CSV
 def import_dataset():
-    balance = pd.read_csv('datasets/balance-scale.csv', sep=',', header=None)
+    from pandas import read_csv
+    balance = read_csv('datasets/balance-scale.csv', sep=',', header=None)
     print("Balance scale dataset imported")
     return balance
 
