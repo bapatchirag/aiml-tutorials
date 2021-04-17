@@ -42,10 +42,10 @@ def print_confusion_matrix(Y_prediction, Y_test):
     print(confusion_matrix(Y_test, Y_prediction))
 
 # Display tree
-def show_tree(trained_model):
+def show_tree(trained_model, features, classes):
     with open("model.dot", "w") as f:
         from sklearn.tree import export_graphviz
-        f = export_graphviz(trained_model, out_file=f, impurity=True, feature_names=["left-weight", "left-distance", "right-weight", "right-distance"], class_names=["B", "L", "R"], rounded=True, filled=True)
+        f = export_graphviz(trained_model, out_file=f, impurity=True, feature_names=features, class_names=classes, rounded=True, filled=True)
 
     # Convert .dot to .png
     from subprocess import check_call
@@ -77,8 +77,10 @@ def main():
     print_confusion_matrix(Y_prediction, Y_test)
     print("-"*20)
 
-    # Display tree generated
-    show_tree(trained_model)
+    # Display tree generated from given features and generated classes
+    features = ["left-weight", "left-distance", "right-weight", "right-distance"]
+    classes = ["B", "L", "R"]
+    show_tree(trained_model, features, classes)
 
 if __name__ == "__main__":
     main()
