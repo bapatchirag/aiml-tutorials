@@ -1,2 +1,12 @@
 # VSCode config files
 .vscode/
+
+# Python Cache files
+__pycache__/
+
+# Dot files and output images
+*.dot
+*.png
+
+# All test files
+test*.py
