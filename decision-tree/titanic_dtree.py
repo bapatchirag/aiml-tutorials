@@ -122,21 +122,58 @@ def get_confusion_matrix(Y_prediction, Y_test):
 def predict_survivors(X_to_predict, trained_model):
     return test_dataset(X_to_predict, trained_model)
 
+# Display decision tree
+def show_tree(trained_model, features, classes):
+    with open("model.dot", "w") as f:
+        from sklearn.tree import export_graphviz
+        f = export_graphviz(trained_model, out_file=f, impurity=True, feature_names=features, class_names=classes, rounded=True, filled=True)
+
+    # Convert .dot to .png
+    from subprocess import check_call
+    check_call(["dot", "-Tpng", "model.dot", "-o", "model.png"])
+    
+    # Open tree from command line
+    from platform import system
+    os_name = system()
+    if os_name == "Linux":
+        check_call(["xdg-open", "model.png"])
+    elif os_name == "Windows":
+        check_call(["model.png"])
+
 # Main script starts here
 def main():
+    # Train dataset and test against test data
     test_set, train_set = import_dataset()
     test_set, train_set = feature_engineering(test_set, train_set)
     X_test, X_train, Y_test, Y_train = get_test_train(train_set)
     trained_model = train_dataset(X_train, Y_train)
     Y_prediction = test_dataset(X_test, trained_model)
+
+    # Get and print accuracy of test data
     accuracy = get_accuracy(Y_prediction, Y_test)
-    print("Accuracy:", accuracy)
+    print("Accuracy:", (accuracy*100))
+    print("-"*50)
+
+    # Get and print confusion matrix - Matrix of TPs, TNs, FPs and FNs
     print("Confusion matrix: ")
     print(get_confusion_matrix(Y_prediction, Y_test))
+    print("-"*50)
 
+    # Predict surviors in unlabeled dataset
     X_to_predict = test_set[["Pclass", "Sex", "Age", "Parch", "Fare", "Embarked", "Has_Cabin", "FamilySize", "Title"]]
-    Y_predicted = predict_survivors(X_to_predict, trained_model)
-    print(Y_predicted[0])
+    Y_predicted_np = predict_survivors(X_to_predict, trained_model)
+
+    # Display survivors in readable format
+    from pandas import DataFrame, concat
+    Y_predicted_df = DataFrame(data=Y_predicted_np, columns=["Survived"])
+    complete_predicted_data = Y_predicted_df.join(test_set[["PassengerId", "Name"]])
+    print(complete_predicted_data)
+    print("-"*50)
+
+    # Display tree generated from given features and generated classes
+    features = ["Pclass", "Sex", "Age", "Parch", "Fare", "Embarked", "Has_Cabin", "FamilySize", "Title"]
+    classes = ["Died", "Survived"]
+    show_tree(trained_model, features, classes)
 
 if __name__ == "__main__":
     main()
