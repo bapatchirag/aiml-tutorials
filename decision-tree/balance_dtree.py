@@ -15,7 +15,7 @@ def get_test_train(balance):
 
     return X_train, X_test, Y_train, Y_test
 
-# Train dataset using the values in the training set
+# Train dataset and get trained model
 def train_dataset(X_train, Y_train):
     from sklearn.tree import DecisionTreeClassifier
     trained_model = DecisionTreeClassifier(criterion="entropy", random_state=42)
@@ -37,19 +37,48 @@ def get_accuracy(Y_prediction, Y_test):
     return accuracy
 
 # Print confusion matrix for given prediction and test data
-def get_confusion_matrix(Y_prediction, Y_test):
+def print_confusion_matrix(Y_prediction, Y_test):
     from sklearn.metrics import confusion_matrix
     print(confusion_matrix(Y_test, Y_prediction))
 
-# Main script starts here
+# Display tree
+def show_tree(trained_model):
+    with open("model.dot", "w") as f:
+        from sklearn.tree import export_graphviz
+        f = export_graphviz(trained_model, out_file=f, impurity=True, feature_names=["left-weight", "left-distance", "right-weight", "right-distance"], class_names=["B", "L", "R"], rounded=True, filled=True)
+
+    # Convert .dot to .png
+    from subprocess import check_call
+    check_call(["dot", "-Tpng", "model.dot", "-o", "model.png"])
+    
+    # Open tree from command line
+    from platform import system
+    os_name = system()
+    if os_name == "Linux":
+        check_call(["xdg-open", "model.png"])
+    elif os_name == "Windows":
+        check_call(["model.png"])
+
+# Main script begins here
 def main():
+    # Train dataset and test against test data
     balance = import_dataset()
     X_train, X_test, Y_train, Y_test = get_test_train(balance)
     trained_model = train_dataset(X_train, Y_train)
     Y_prediction = test_dataset(X_test, trained_model)
+
+    # Get and print accuracy of test data
     accuracy = get_accuracy(Y_prediction, Y_test)
-    print("Accuracy:", accuracy)
-    get_confusion_matrix(Y_prediction, Y_test)
+    print("Accuracy:", (accuracy*100))
+    print("-"*20)
+
+    # Get and print confusion matrix - Matrix of TPs, TNs, FPs and FNs
+    print("Confusion matrix:")
+    print_confusion_matrix(Y_prediction, Y_test)
+    print("-"*20)
+
+    # Display tree generated
+    show_tree(trained_model)
 
 if __name__ == "__main__":
     main()
